@@ -32,7 +32,7 @@ export default function ProductosPage() {
       alinear: 'right',
       render: (v) => (
         <span
-          className={v > 5 ? 'text-slate-700 tabular-nums' : v > 0 ? 'ui-badge-warning tabular-nums' : 'ui-badge-danger tabular-nums'}
+          className={v > 5 ? 'text-slate-700 tabular-nums' : v > 0 ? 'ui-badge-warning bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-300 tabular-nums' : 'ui-badge-danger bg-red-100 text-red-800 ring-1 ring-inset ring-red-300 tabular-nums'}
         >
           {v}
         </span>
