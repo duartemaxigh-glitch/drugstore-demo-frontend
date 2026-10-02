@@ -32,7 +32,7 @@ export default function ProductosPage() {
       alinear: 'right',
       render: (v) => (
         <span
-          className={v <= 5 ? 'ui-badge-danger' : 'ui-badge-success'}
+          className={v > 5 ? 'text-slate-700 tabular-nums' : v > 0 ? 'ui-badge-warning tabular-nums' : 'ui-badge-danger tabular-nums'}
         >
           {v}
         </span>
@@ -90,6 +90,7 @@ export default function ProductosPage() {
       sinCrear
       sinEliminar
       etiquetaSingular="producto"
+      placeholderBusqueda="Buscar por nombre o código..."
     />
   );
 }

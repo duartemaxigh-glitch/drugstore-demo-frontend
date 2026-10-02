@@ -36,6 +36,7 @@ export default function PaginaCrud({
   sinEditar = false,
   sinEliminar = false,
   etiquetaSingular = 'registro',
+  placeholderBusqueda = 'Buscar...',
 }) {
   const [datos, setDatos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -153,11 +154,12 @@ export default function PaginaCrud({
       </div>
 
       {/* Búsqueda */}
-      <div className="relative mb-4">
-        <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <div className="relative mb-4 w-full max-w-lg">
+        <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
-          placeholder="Buscar..."
+          aria-label={`Buscar en ${titulo}`}
+          placeholder={placeholderBusqueda}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="ui-input pl-10"
@@ -168,9 +170,9 @@ export default function PaginaCrud({
       <div className="ui-card overflow-hidden">
         {cargando ? (
           <div className="flex justify-center items-center py-20">
-            <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : datosFiltrados.length === 0 ? (
+        ) : datos.length === 0 ? (
           <div className="text-center py-20 text-slate-600">
             <p className="text-lg">No se encontraron resultados</p>
           </div>
@@ -187,20 +189,26 @@ export default function PaginaCrud({
                       {col.titulo}
                     </th>
                   ))}
-                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {datosFiltrados.map((item, i) => (
+                {datosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={columnas.length + 1} className="text-center">
+                      No se encontraron resultados
+                    </td>
+                  </tr>
+                ) : datosFiltrados.map((item, i) => (
                   <tr
                     key={item[idCampo] ?? `row-${i}`}
-                    className="border-b border-gray-50 hover:bg-amber-50/50
+                    className="border-b border-slate-100 hover:bg-slate-50
                       transition-colors duration-150"
                   >
                     {columnas.map((col) => (
-                      <td key={col.clave} className={`${col.alinear === 'right' ? 'text-right tabular-nums' : 'text-left'} px-5 py-3.5 text-sm text-gray-700`}>
+                      <td key={col.clave} className={`${col.alinear === 'right' ? 'text-right tabular-nums' : 'text-left'} px-5 py-3.5 text-sm text-slate-700`}>
                         {col.render
                           ? col.render(item[col.clave], item)
                           : (item[col.clave] ?? '—')}
@@ -239,7 +247,7 @@ export default function PaginaCrud({
       </div>
 
       {/* Contador */}
-      <p className="text-sm text-slate-600 mt-3">
+      <p className="text-sm text-slate-500 mt-3">
         {datosFiltrados.length} de {datos.length} registros
       </p>
 
@@ -254,7 +262,7 @@ export default function PaginaCrud({
               .filter((c) => !(editando && c.soloCrear))
               .map((campo) => (
                 <div key={campo.nombre}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor={`crud-${campo.nombre}`} className="block text-sm font-medium text-slate-700 mb-1">
                     {campo.etiqueta}
                     {campo.requerido && (
                       <span className="text-red-500 ml-1">*</span>
@@ -263,6 +271,7 @@ export default function PaginaCrud({
 
                   {campo.tipo === 'select' ? (
                     <select
+                      id={`crud-${campo.nombre}`}
                       value={formulario[campo.nombre] ?? ''}
                       onChange={(e) =>
                         setFormulario({
@@ -282,6 +291,7 @@ export default function PaginaCrud({
                     </select>
                   ) : (
                     <input
+                      id={`crud-${campo.nombre}`}
                       type={campo.tipo || 'text'}
                       value={formulario[campo.nombre] ?? ''}
                       onChange={(e) =>

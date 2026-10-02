@@ -50,7 +50,7 @@ export default function Sidebar() {
       {/* Botón hamburguesa (mobile) */}
       <button
         onClick={() => setAbierto(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 p-2.5 bg-slate-900 text-white rounded-xl shadow-md hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
+        className="lg:hidden fixed top-4 left-4 z-40 p-2.5 bg-slate-900 text-white rounded-xl shadow-md hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
         aria-label="Abrir menú"
       >
         <Bars3Icon className="w-6 h-6" />
@@ -77,7 +77,7 @@ export default function Sidebar() {
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-700"><StoreIcon className="h-6 w-6" /></span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-600"><StoreIcon className="h-6 w-6" /></span>
             <div>
               <h1 className="font-bold text-lg leading-tight">{APP_NAME}</h1>
               <p className="text-xs text-slate-400">Sistema de gestión</p>
@@ -85,7 +85,7 @@ export default function Sidebar() {
           </div>
           <button
             onClick={() => setAbierto(false)}
-            className="lg:hidden p-2 hover:bg-white/10 rounded-lg"
+            className="lg:hidden p-2 hover:bg-white/10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             aria-label="Cerrar menú"
           >
             <XMarkIcon className="w-5 h-5" />
@@ -100,13 +100,14 @@ export default function Sidebar() {
               <Link
                 key={item.ruta}
                 href={item.ruta}
+                aria-current={activo ? 'page' : undefined}
                 onClick={() => setAbierto(false)}
                 className={`
                   flex items-center gap-3 px-4 py-2.5 rounded-xl
-                  transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400
+                  transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
                   ${
                     activo
-                      ? 'bg-amber-700 text-white'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -122,7 +123,7 @@ export default function Sidebar() {
         <div className="p-3 border-t border-white/10">
           <div className="px-4 py-2 mb-2">
             <p className="text-xs text-slate-400">Sesión iniciada como</p>
-            <p className="text-sm font-semibold text-amber-300 capitalize">
+            <p className="text-sm font-semibold text-white capitalize">
               {usuario?.rol || '...'}
             </p>
           </div>
@@ -130,7 +131,7 @@ export default function Sidebar() {
             onClick={logout}
             className="flex items-center gap-3 px-4 py-2.5 w-full rounded-xl
               text-slate-300 hover:bg-white/10 hover:text-white
-              transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             <ArrowRightStartOnRectangleIcon className="w-5 h-5" />
             <span className="font-medium text-sm">Cerrar Sesión</span>

@@ -42,6 +42,7 @@ export default function VentasPage() {
   // Historial
   const [ventas, setVentas] = useState([]);
   const [ventaDetalle, setVentaDetalle] = useState(null);
+  const [errorHistorial, setErrorHistorial] = useState(false);
 
   // Ticket
   const [ticketTexto, setTicketTexto] = useState(null);
@@ -64,7 +65,15 @@ export default function VentasPage() {
   }, []);
 
   function cargarVentas() {
-    api.get('/ventas').then(setVentas).catch(() => {});
+    api.get('/ventas')
+      .then((datos) => {
+        setVentas(datos);
+        setErrorHistorial(false);
+      })
+      .catch(() => {
+        setErrorHistorial(true);
+        toast.error('No se pudo cargar el historial de ventas.');
+      });
   }
 
   useEffect(() => {
@@ -162,7 +171,6 @@ export default function VentasPage() {
       const venta = await api.post('/ventas', payload);
       setVentaExitosa(venta);
       setCarrito([]);
-      toast.exito('¡Venta registrada correctamente!');
 
       // Recargar productos (stock actualizado)
       api.get('/productos').then(setProductos);
@@ -214,7 +222,7 @@ export default function VentasPage() {
   if (cargando) {
     return (
       <div className="flex justify-center items-center py-20">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -240,7 +248,7 @@ export default function VentasPage() {
           onClick={() => setVista('nueva')}
           role="tab"
           aria-selected={vista === 'nueva'}
-          className={`ui-tab ${vista === 'nueva' ? 'ui-tab-active' : ''}`}
+          className={`ui-tab ${vista === 'nueva' ? 'ui-tab-sales-active' : ''}`}
         >
           <ShoppingCartIcon className="h-5 w-5" /> Nueva venta
         </button>
@@ -248,7 +256,7 @@ export default function VentasPage() {
           onClick={() => setVista('historial')}
           role="tab"
           aria-selected={vista === 'historial'}
-          className={`ui-tab ${vista === 'historial' ? 'ui-tab-active' : ''}`}
+          className={`ui-tab ${vista === 'historial' ? 'ui-tab-sales-active' : ''}`}
         >
           <ClockIcon className="h-5 w-5" /> Historial
         </button>
@@ -260,24 +268,24 @@ export default function VentasPage() {
           {ventaExitosa ? (
             /* Estado: Venta exitosa */
             <div className="ui-card p-6 sm:p-8 text-center animate-scale-in">
-              <CheckCircleIcon className="w-16 h-16 text-emerald-700 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <CheckCircleIcon className="w-16 h-16 text-green-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
                 ¡Venta registrada!
               </h2>
-              <p className="text-gray-500 mb-2">
+              <p className="text-slate-600 mb-2">
                 Venta #{ventaExitosa.id_venta} — Total: ${ventaExitosa.total.toFixed(2)}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
                 <button
                   onClick={() => imprimirTicket(ventaExitosa.id_venta)}
-                  className="ui-button-primary"
+                  className="ui-button-secondary"
                 >
                   {DEMO_MODE ? <DocumentTextIcon className="w-5 h-5" /> : <PrinterIcon className="w-5 h-5" />}
                   {DEMO_MODE ? 'Ver Ticket' : 'Imprimir Ticket'}
                 </button>
                 <button
                   onClick={nuevaVenta}
-                  className="ui-button-secondary"
+                  className="ui-button-primary ui-button-sales"
                 >
                   <ShoppingCartIcon className="w-5 h-5" />
                   Nueva Venta
@@ -290,9 +298,10 @@ export default function VentasPage() {
               {/* Panel izquierdo: Productos */}
               <div className="lg:col-span-3">
                 <div className="relative mb-4">
-                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
+                    aria-label="Buscar productos para la venta"
                     placeholder="Buscar producto por nombre o código..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
@@ -307,23 +316,23 @@ export default function VentasPage() {
                       key={p.id_producto}
                       onClick={() => agregarAlCarrito(p)}
                       disabled={p.stock <= 0}
-                      className={`text-left bg-white border rounded-xl p-3
-                        transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700
+                      className={`text-left border rounded-xl p-3
+                        transition-[background-color,border-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600
                         ${
                           p.stock <= 0
-                            ? 'opacity-50 cursor-not-allowed border-slate-200'
-                            : 'border-slate-200 hover:border-amber-500 hover:bg-amber-50/40 hover:shadow-md active:scale-[0.98]'
+                            ? 'cursor-not-allowed border-slate-200 bg-slate-50'
+                            : 'border-slate-200 bg-white hover:border-orange-100 hover:bg-orange-50 active:scale-[0.98]'
                         }`}
                     >
-                      <p className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover:text-orange-700 transition-colors">
+                      <p className="font-semibold text-sm text-slate-900 line-clamp-2">
                         {p.nombre}
                       </p>
-                      <p className="text-lg font-bold text-orange-700 mt-1">
+                      <p className="text-lg font-bold text-slate-900 mt-1 tabular-nums">
                         ${p.precio_venta.toFixed(2)}
                       </p>
                       <p
                         className={`text-xs mt-1 ${
-                           p.stock <= 5 ? 'text-red-700 font-semibold' : 'text-slate-600'
+                          p.stock <= 0 ? 'text-red-600 font-semibold' : p.stock <= 5 ? 'text-amber-600 font-semibold' : 'text-slate-600'
                         }`}
                       >
                         Stock: {p.stock}
@@ -341,7 +350,7 @@ export default function VentasPage() {
               {/* Panel derecho: Carrito */}
               <div className="lg:col-span-2">
                 <div className="ui-card p-4 sm:p-5 lg:sticky lg:top-6">
-                  <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <ShoppingCartIcon className="w-5 h-5" />
                     Detalle de Venta
                     {carrito.length > 0 && (
@@ -363,35 +372,33 @@ export default function VentasPage() {
                           className="flex flex-wrap items-center gap-3 bg-slate-50 rounded-xl p-3 animate-slide-right"
                         >
                           <div className="w-full min-w-0">
-                            <p className="text-sm font-medium text-gray-900 break-words">
+                            <p className="text-sm font-medium text-slate-900 break-words">
                               {item.nombre}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-slate-600 tabular-nums">
                               ${item.precio.toFixed(2)} c/u
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => cambiarCantidad(item.id_producto, -1)}
-                              className="w-7 h-7 rounded-lg bg-white border border-gray-200
-                                flex items-center justify-center hover:bg-gray-100 transition-colors"
+                              className="ui-icon-button ui-icon-button-compact"
                               aria-label={`Quitar una unidad de ${item.nombre}`}
                             >
                               <MinusIcon className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-8 text-center text-sm font-bold">
+                            <span className="w-8 text-center text-sm font-bold text-slate-900 tabular-nums">
                               {item.cantidad}
                             </span>
                             <button
                               onClick={() => cambiarCantidad(item.id_producto, 1)}
-                              className="w-7 h-7 rounded-lg bg-white border border-gray-200
-                                flex items-center justify-center hover:bg-gray-100 transition-colors"
+                              className="ui-icon-button ui-icon-button-compact"
                               aria-label={`Agregar una unidad de ${item.nombre}`}
                             >
                               <PlusIcon className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                          <p className="text-sm font-bold text-gray-900 ml-auto text-right tabular-nums">
+                          <p className="text-sm font-bold text-slate-900 ml-auto text-right tabular-nums">
                             ${(item.cantidad * item.precio).toFixed(2)}
                           </p>
                           <button
@@ -407,12 +414,13 @@ export default function VentasPage() {
                   )}
 
                   {/* Selectores */}
-                  <div className="space-y-3 border-t border-gray-100 pt-4">
+                  <div className="space-y-3 border-t border-slate-200 pt-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                      <label htmlFor="ventas-cliente" className="block text-xs font-semibold text-slate-600 mb-1">
                         Cliente (opcional)
                       </label>
                       <select
+                        id="ventas-cliente"
                         value={clienteId}
                         onChange={(e) => setClienteId(e.target.value)}
                         className="ui-input"
@@ -426,10 +434,11 @@ export default function VentasPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                      <label htmlFor="ventas-medio-pago" className="block text-xs font-semibold text-slate-600 mb-1">
                         Medio de Pago *
                       </label>
                       <select
+                        id="ventas-medio-pago"
                         value={medioPagoId}
                         onChange={(e) => setMedioPagoId(e.target.value)}
                         required
@@ -445,17 +454,17 @@ export default function VentasPage() {
                   </div>
 
                   {/* Total y botón */}
-                  <div className="border-t border-gray-100 mt-4 pt-4">
+                  <div className="border-t border-slate-200 mt-4 pt-4">
                     <div className="flex justify-between items-center mb-4">
-                      <span className="text-lg font-bold text-gray-900">TOTAL</span>
-                      <span className="text-2xl font-bold text-orange-700">
+                      <span className="text-lg font-bold text-slate-900">TOTAL</span>
+                      <span className="text-2xl font-bold text-orange-600 tabular-nums">
                         ${total.toFixed(2)}
                       </span>
                     </div>
                     <button
                       onClick={finalizarVenta}
                       disabled={carrito.length === 0 || finalizando}
-                      className="ui-button-primary w-full py-3 text-base"
+                      className="ui-button-primary ui-button-sales w-full py-3 text-base"
                     >
                       {finalizando ? 'Procesando...' : 'Finalizar Venta'}
                     </button>
@@ -473,28 +482,28 @@ export default function VentasPage() {
           <div className="overflow-x-auto">
             <table className="ui-table min-w-[760px]">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">ID</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Fecha</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Cliente</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Medio de Pago</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Total</th>
-                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Acciones</th>
+                <tr>
+                  <th className="text-left">ID</th>
+                  <th className="text-left">Fecha</th>
+                  <th className="text-left">Cliente</th>
+                  <th className="text-left">Medio de Pago</th>
+                  <th className="text-left">Total</th>
+                  <th className="text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {ventas.map((v) => (
-                  <tr key={v.id_venta} className="border-b border-gray-50 hover:bg-amber-50/50 transition-colors">
-                    <td className="px-5 py-3.5 text-sm font-mono">#{v.id_venta}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">
+                  <tr key={v.id_venta} className="hover:bg-slate-50 transition-colors">
+                    <td className="font-mono">#{v.id_venta}</td>
+                    <td>
                       {v.fecha ? new Date(v.fecha).toLocaleString('es-AR') : '—'}
                     </td>
-                    <td className="px-5 py-3.5 text-sm">{clienteNombre(v.id_cliente)}</td>
-                    <td className="px-5 py-3.5 text-sm">{medioPagoNombre(v.id_medio_pago)}</td>
-                    <td className="px-5 py-3.5 text-sm font-bold text-orange-700">
+                    <td>{clienteNombre(v.id_cliente)}</td>
+                    <td>{medioPagoNombre(v.id_medio_pago)}</td>
+                    <td className="font-bold !text-orange-600 tabular-nums">
                       ${v.total.toFixed(2)}
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="text-right">
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => verDetalle(v.id_venta)}
@@ -529,7 +538,7 @@ export default function VentasPage() {
                 {ventas.length === 0 && (
                   <tr>
                     <td colSpan={6} className="text-center py-16 text-slate-600">
-                      No hay ventas registradas
+                      {errorHistorial ? 'No se pudo cargar el historial de ventas.' : 'No hay ventas registradas'}
                     </td>
                   </tr>
                 )}
@@ -543,36 +552,36 @@ export default function VentasPage() {
       {ventaDetalle && (
         <Modal titulo={`Venta #${ventaDetalle.id_venta}`} onCerrar={() => setVentaDetalle(null)}>
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <strong>Fecha:</strong>{' '}
               {ventaDetalle.fecha
                 ? new Date(ventaDetalle.fecha).toLocaleString('es-AR')
                 : '—'}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <strong>Cliente:</strong> {clienteNombre(ventaDetalle.id_cliente)}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <strong>Medio de Pago:</strong>{' '}
               {medioPagoNombre(ventaDetalle.id_medio_pago)}
             </p>
-            <div className="border-t border-gray-100 pt-3 overflow-x-auto">
-              <table className="w-full min-w-[380px] text-sm">
+            <div className="border-t border-slate-200 pt-3 overflow-x-auto">
+              <table className="ui-table min-w-[380px]">
                 <thead>
-                  <tr className="text-gray-500">
-                    <th className="text-left py-1">Producto</th>
-                    <th className="text-center py-1">Cant.</th>
-                    <th className="text-right py-1">P. Unit.</th>
-                    <th className="text-right py-1">Subtotal</th>
+                  <tr>
+                    <th className="text-left">Producto</th>
+                    <th className="text-center">Cant.</th>
+                    <th className="text-right">P. Unit.</th>
+                    <th className="text-right">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ventaDetalle.detalles.map((d, i) => (
-                    <tr key={i} className="border-t border-gray-50">
-                      <td className="py-2">{productoNombre(d.id_producto)}</td>
-                      <td className="text-center py-2">{d.cantidad}</td>
-                      <td className="text-right py-2">${d.precio_unitario.toFixed(2)}</td>
-                      <td className="text-right py-2 font-semibold">
+                    <tr key={i}>
+                      <td>{productoNombre(d.id_producto)}</td>
+                      <td className="text-center tabular-nums">{d.cantidad}</td>
+                      <td className="text-right tabular-nums">${d.precio_unitario.toFixed(2)}</td>
+                      <td className="text-right font-semibold tabular-nums">
                         ${d.subtotal.toFixed(2)}
                       </td>
                     </tr>
@@ -580,9 +589,9 @@ export default function VentasPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-gray-200 pt-3 flex justify-between">
-              <span className="font-bold text-lg">TOTAL</span>
-              <span className="font-bold text-lg text-orange-700">
+            <div className="border-t border-slate-200 pt-3 flex justify-between">
+              <span className="font-bold text-lg text-slate-900">TOTAL</span>
+              <span className="font-bold text-lg text-orange-600 tabular-nums">
                 ${ventaDetalle.total.toFixed(2)}
               </span>
             </div>

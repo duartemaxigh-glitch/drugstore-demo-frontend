@@ -65,6 +65,7 @@ export default function ComprasPage() {
   // Historial
   const [compras, setCompras] = useState([]);
   const [compraDetalle, setCompraDetalle] = useState(null);
+  const [errorHistorial, setErrorHistorial] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -160,7 +161,15 @@ export default function ComprasPage() {
   }
 
   function cargarCompras() {
-    api.get('/compras').then(setCompras).catch(() => {});
+    api.get('/compras')
+      .then((datos) => {
+        setCompras(datos);
+        setErrorHistorial(false);
+      })
+      .catch(() => {
+        setErrorHistorial(true);
+        toast.error('No se pudo cargar el historial de compras.');
+      });
   }
 
   useEffect(() => {
@@ -242,7 +251,6 @@ export default function ComprasPage() {
       setCompraExitosa(compra);
       setCarrito([]);
       setContadorTemp(-1);
-      toast.exito('¡Compra registrada correctamente!');
       api.get('/productos').then(setProductos);
     } catch (err) {
       toast.error(err.message);
@@ -279,7 +287,7 @@ export default function ComprasPage() {
   if (cargando) {
     return (
       <div className="flex justify-center items-center py-20">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -314,10 +322,10 @@ export default function ComprasPage() {
           {compraExitosa ? (
             <div className="ui-card p-6 sm:p-8 text-center animate-scale-in">
               <CheckCircleIcon className="w-16 h-16 text-emerald-700 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
                 ¡Compra registrada!
               </h2>
-              <p className="text-gray-500 mb-2">
+              <p className="text-slate-500 mb-2 tabular-nums">
                 Compra #{compraExitosa.id_compra} — Total: ${compraExitosa.total.toFixed(2)}
               </p>
               <button
@@ -338,7 +346,7 @@ export default function ComprasPage() {
               {/* Proveedor */}
               <div className="ui-card p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="compras-proveedor" className="block text-sm font-medium text-slate-700">
                     Proveedor *
                   </label>
                   <button
@@ -349,6 +357,7 @@ export default function ComprasPage() {
                   </button>
                 </div>
                 <select
+                  id="compras-proveedor"
                   value={proveedorId}
                   onChange={(e) => setProveedorId(e.target.value)}
                   className="ui-input"
@@ -365,7 +374,7 @@ export default function ComprasPage() {
               {/* Agregar productos */}
               <div className="ui-card p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-bold text-gray-900">Agregar Producto</h2>
+                  <h2 className="font-bold text-slate-900">Agregar Producto</h2>
                   <button
                     onClick={() => setModalProducto(true)}
                     className="ui-button-quiet"
@@ -376,9 +385,10 @@ export default function ComprasPage() {
                 {/* Buscador por nombre o código de barras */}
                 <div className="relative">
                   <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     <input
                       type="text"
+                      aria-label="Buscar productos para la compra"
                       value={terminoBusqueda}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -407,7 +417,7 @@ export default function ComprasPage() {
 
                   {/* Dropdown de resultados */}
                   {resultadosBusqueda.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-200
+                    <div className="absolute top-full left-0 right-0 bg-white border border-slate-200
                       rounded-xl shadow-lg z-20 mt-1 max-h-52 overflow-y-auto">
                       {resultadosBusqueda.map((p) => (
                         <button
@@ -415,9 +425,9 @@ export default function ComprasPage() {
                           onClick={() => seleccionarProducto(p)}
                           className="w-full flex items-center justify-between px-4 py-2.5
                             hover:bg-blue-50 transition-colors text-left
-                            border-b border-gray-50 last:border-0"
+                            border-b border-slate-100 last:border-0"
                         >
-                          <span className="font-medium text-sm text-gray-800">{p.nombre}</span>
+                          <span className="font-medium text-sm text-slate-800">{p.nombre}</span>
                           <span className="text-xs text-slate-600 ml-2 shrink-0">
                             {p.codigo_barras || 'Sin cód.'}
                           </span>
@@ -432,24 +442,24 @@ export default function ComprasPage() {
                   <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">
+                        <p className="font-semibold text-slate-900 text-sm">
                           {productoEncontrado.nombre}
                         </p>
                         {productoEncontrado.codigo_barras && (
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-slate-500 mt-0.5">
                             Código: {productoEncontrado.codigo_barras}
                           </p>
                         )}
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Precio compra registrado:{' '}
-                          <span className="font-medium">
+                          <span className="font-medium tabular-nums">
                             ${productoEncontrado.precio_compra.toFixed(2)}
                           </span>
                         </p>
                       </div>
                       <button
                         onClick={limpiarBusqueda}
-                        className="ui-icon-button"
+                        className="ui-icon-button ui-icon-button-compact"
                         aria-label="Quitar producto seleccionado"
                       >
                         <XMarkIcon className="w-4 h-4" />
@@ -457,24 +467,26 @@ export default function ComprasPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Cantidad</label>
+                        <label htmlFor="compras-cantidad" className="text-xs text-slate-600 mb-1 block">Cantidad</label>
                         <input
+                          id="compras-cantidad"
                           type="number"
                           min="1"
                           value={cantidadAgregar}
                           onChange={(e) => setCantidadAgregar(Number(e.target.value))}
-                          className="ui-input"
+                          className="ui-input tabular-nums"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Precio unitario</label>
+                        <label htmlFor="compras-precio-unitario" className="text-xs text-slate-600 mb-1 block">Precio unitario</label>
                         <input
+                          id="compras-precio-unitario"
                           type="number"
                           min="0"
                           step="0.01"
                           value={precioAgregar}
                           onChange={(e) => setPrecioAgregar(e.target.value)}
-                          className="ui-input"
+                          className="ui-input tabular-nums"
                         />
                       </div>
                       <div className="flex items-end">
@@ -493,7 +505,7 @@ export default function ComprasPage() {
 
               {/* Detalle */}
               <div className="ui-card p-4 sm:p-5">
-                <h2 className="font-bold text-gray-900 mb-4">Detalle de Compra</h2>
+                <h2 className="font-bold text-slate-900 mb-4">Detalle de Compra</h2>
                 {carrito.length === 0 ? (
                   <p className="text-sm text-slate-600 text-center py-8">
                     Agregá productos a la compra
@@ -502,7 +514,7 @@ export default function ComprasPage() {
                   <div className="overflow-x-auto">
                     <table className="ui-table min-w-[560px]">
                       <thead>
-                        <tr className="text-gray-500 border-b border-gray-100">
+                        <tr className="text-slate-500 border-b border-slate-100">
                           <th className="text-left py-2">Producto</th>
                           <th className="text-center py-2">Cant.</th>
                           <th className="text-right py-2">P. Unit.</th>
@@ -512,13 +524,13 @@ export default function ComprasPage() {
                       </thead>
                       <tbody>
                         {carrito.map((item) => (
-                          <tr key={item.id_producto} className="border-b border-gray-50">
+                          <tr key={item.id_producto} className="border-b border-slate-100">
                             <td className="py-2.5">{item.nombre}</td>
-                            <td className="text-center py-2.5">{item.cantidad}</td>
-                            <td className="text-right py-2.5">
+                            <td className="text-center py-2.5 tabular-nums">{item.cantidad}</td>
+                            <td className="text-right py-2.5 tabular-nums">
                               ${item.precioUnitario.toFixed(2)}
                             </td>
-                            <td className="text-right py-2.5 font-semibold">
+                            <td className="text-right py-2.5 font-semibold tabular-nums">
                               ${(item.cantidad * item.precioUnitario).toFixed(2)}
                             </td>
                             <td className="text-right py-2.5">
@@ -538,10 +550,10 @@ export default function ComprasPage() {
                 )}
 
                 {/* Total y botón */}
-                <div className="border-t border-gray-200 mt-4 pt-4">
+                <div className="border-t border-slate-200 mt-4 pt-4">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-bold text-gray-900">TOTAL</span>
-                    <span className="text-2xl font-bold text-blue-700">
+                    <span className="text-lg font-bold text-slate-900">TOTAL</span>
+                    <span className="text-2xl font-bold text-blue-700 tabular-nums">
                       ${total.toFixed(2)}
                     </span>
                   </div>
@@ -565,28 +577,28 @@ export default function ComprasPage() {
           <div className="overflow-x-auto">
             <table className="ui-table min-w-[680px]">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">ID</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Fecha</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Proveedor</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Total</th>
-                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">Acciones</th>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">ID</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">Fecha</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">Proveedor</th>
+                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">Total</th>
+                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {compras.map((c) => (
                   <tr
                     key={c.id_compra}
-                    className="border-b border-slate-100 hover:bg-blue-50/50 transition-colors"
+                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-5 py-3.5 text-sm font-mono">#{c.id_compra}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">
+                    <td className="px-5 py-3.5 text-sm text-slate-600">
                       {c.fecha ? new Date(c.fecha).toLocaleString('es-AR') : '—'}
                     </td>
                     <td className="px-5 py-3.5 text-sm">
                       {proveedorNombre(c.id_proveedor)}
                     </td>
-                    <td className="px-5 py-3.5 text-sm font-bold text-blue-700">
+                    <td className="px-5 py-3.5 text-sm text-right font-bold tabular-nums">
                       ${c.total.toFixed(2)}
                     </td>
                     <td className="px-5 py-3.5 text-right">
@@ -616,7 +628,7 @@ export default function ComprasPage() {
                 {compras.length === 0 && (
                   <tr>
                     <td colSpan={5} className="text-center py-16 text-slate-600">
-                      No hay compras registradas
+                      {errorHistorial ? 'No se pudo cargar el historial de compras.' : 'No hay compras registradas'}
                     </td>
                   </tr>
                 )}
@@ -634,10 +646,11 @@ export default function ComprasPage() {
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="compras-proveedor-razon-social" className="block text-sm font-medium text-slate-700 mb-1">
                 Razón Social *
               </label>
               <input
+                id="compras-proveedor-razon-social"
                 type="text"
                 value={nuevoProveedor.razon_social}
                 onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, razon_social: e.target.value })}
@@ -647,10 +660,11 @@ export default function ComprasPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="compras-proveedor-cuit" className="block text-sm font-medium text-slate-700 mb-1">
                   CUIT/CUIL
                 </label>
                 <input
+                  id="compras-proveedor-cuit"
                   type="text"
                   value={nuevoProveedor.cuit_cuil}
                   onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, cuit_cuil: e.target.value })}
@@ -659,10 +673,11 @@ export default function ComprasPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="compras-proveedor-contacto" className="block text-sm font-medium text-slate-700 mb-1">
                   Contacto
                 </label>
                 <input
+                  id="compras-proveedor-contacto"
                   type="text"
                   value={nuevoProveedor.contacto_nombre}
                   onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, contacto_nombre: e.target.value })}
@@ -673,10 +688,11 @@ export default function ComprasPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="compras-proveedor-telefono" className="block text-sm font-medium text-slate-700 mb-1">
                   Teléfono
                 </label>
                 <input
+                  id="compras-proveedor-telefono"
                   type="text"
                   value={nuevoProveedor.telefono}
                   onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, telefono: e.target.value })}
@@ -685,10 +701,11 @@ export default function ComprasPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="compras-proveedor-email" className="block text-sm font-medium text-slate-700 mb-1">
                   Email
                 </label>
                 <input
+                  id="compras-proveedor-email"
                   type="email"
                   value={nuevoProveedor.email}
                   onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, email: e.target.value })}
@@ -725,10 +742,11 @@ export default function ComprasPage() {
         >
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="compras-producto-nombre" className="block text-sm font-medium text-slate-700 mb-1">
                 Nombre *
               </label>
               <input
+                id="compras-producto-nombre"
                 type="text"
                 value={nuevoProducto.nombre}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, nombre: e.target.value })}
@@ -738,10 +756,11 @@ export default function ComprasPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="compras-producto-precio-venta" className="block text-sm font-medium text-slate-700 mb-1">
                   Precio de Venta *
                 </label>
                 <input
+                  id="compras-producto-precio-venta"
                   type="number"
                   min="0"
                   step="0.01"
@@ -752,10 +771,11 @@ export default function ComprasPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="compras-producto-precio-compra" className="block text-sm font-medium text-slate-700 mb-1">
                   Precio de Compra *
                 </label>
                 <input
+                  id="compras-producto-precio-compra"
                   type="number"
                   min="0"
                   step="0.01"
@@ -767,10 +787,11 @@ export default function ComprasPage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="compras-producto-codigo" className="block text-sm font-medium text-slate-700 mb-1">
                 Código de Barras
               </label>
               <input
+                id="compras-producto-codigo"
                 type="text"
                 value={nuevoProducto.codigo_barras}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, codigo_barras: e.target.value })}
@@ -779,10 +800,11 @@ export default function ComprasPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="compras-producto-categoria" className="block text-sm font-medium text-slate-700 mb-1">
                 Categoría
               </label>
               <select
+                id="compras-producto-categoria"
                 value={nuevoProducto.id_categoria}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, id_categoria: e.target.value })}
                 className="ui-input"
@@ -822,20 +844,20 @@ export default function ComprasPage() {
           onCerrar={() => setCompraDetalle(null)}
         >
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <strong>Fecha:</strong>{' '}
               {compraDetalle.fecha
                 ? new Date(compraDetalle.fecha).toLocaleString('es-AR')
                 : '—'}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <strong>Proveedor:</strong>{' '}
               {proveedorNombre(compraDetalle.id_proveedor)}
             </p>
-            <div className="border-t border-gray-100 pt-3 overflow-x-auto">
+            <div className="border-t border-slate-100 pt-3 overflow-x-auto">
               <table className="w-full min-w-[380px] text-sm">
                 <thead>
-                  <tr className="text-gray-500">
+                  <tr className="text-slate-500">
                     <th className="text-left py-1">Producto</th>
                     <th className="text-center py-1">Cant.</th>
                     <th className="text-right py-1">P. Unit.</th>
@@ -844,13 +866,13 @@ export default function ComprasPage() {
                 </thead>
                 <tbody>
                   {compraDetalle.detalles.map((d, i) => (
-                    <tr key={i} className="border-t border-gray-50">
+                    <tr key={i} className="border-t border-slate-100">
                       <td className="py-2">{productoNombre(d.id_producto)}</td>
-                      <td className="text-center py-2">{d.cantidad}</td>
-                      <td className="text-right py-2">
+                      <td className="text-center py-2 tabular-nums">{d.cantidad}</td>
+                      <td className="text-right py-2 tabular-nums">
                         ${d.precio_unitario.toFixed(2)}
                       </td>
-                      <td className="text-right py-2 font-semibold">
+                      <td className="text-right py-2 font-semibold tabular-nums">
                         ${d.subtotal.toFixed(2)}
                       </td>
                     </tr>
@@ -858,9 +880,9 @@ export default function ComprasPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-gray-200 pt-3 flex justify-between">
+            <div className="border-t border-slate-200 pt-3 flex justify-between">
               <span className="font-bold text-lg">TOTAL</span>
-              <span className="font-bold text-lg text-blue-700">
+              <span className="font-bold text-lg text-blue-700 tabular-nums">
                 ${compraDetalle.total.toFixed(2)}
               </span>
             </div>

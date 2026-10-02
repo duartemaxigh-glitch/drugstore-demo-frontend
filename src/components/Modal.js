@@ -1,16 +1,57 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Modal({ titulo, children, onCerrar, ancho = 'max-w-md' }) {
+  const dialogoRef = useRef(null);
+  const cerrarRef = useRef(onCerrar);
+  cerrarRef.current = onCerrar;
+
   useEffect(() => {
-    const manejarEsc = (e) => {
-      if (e.key === 'Escape') onCerrar();
+    const focoAnterior = document.activeElement;
+    const dialogo = dialogoRef.current;
+    const elementosEnfocables = () =>
+      Array.from(
+        dialogo.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((elemento) => elemento.getClientRects().length > 0);
+
+    (elementosEnfocables()[0] || dialogo).focus({ preventScroll: true });
+
+    const manejarTecla = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cerrarRef.current();
+      }
+      if (e.key !== 'Tab') return;
+
+      const enfocables = elementosEnfocables();
+      if (enfocables.length === 0) {
+        e.preventDefault();
+        dialogo.focus();
+        return;
+      }
+
+      const primero = enfocables[0];
+      const ultimo = enfocables[enfocables.length - 1];
+      if (e.shiftKey && (document.activeElement === primero || !dialogo.contains(document.activeElement))) {
+        e.preventDefault();
+        ultimo.focus();
+      } else if (!e.shiftKey && (document.activeElement === ultimo || !dialogo.contains(document.activeElement))) {
+        e.preventDefault();
+        primero.focus();
+      }
     };
-    document.addEventListener('keydown', manejarEsc);
-    return () => document.removeEventListener('keydown', manejarEsc);
-  }, [onCerrar]);
+    document.addEventListener('keydown', manejarTecla);
+    return () => {
+      document.removeEventListener('keydown', manejarTecla);
+      if (focoAnterior instanceof HTMLElement && focoAnterior.isConnected) {
+        focoAnterior.focus({ preventScroll: true });
+      }
+    };
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" role="presentation">
@@ -22,9 +63,11 @@ export default function Modal({ titulo, children, onCerrar, ancho = 'max-w-md' }
 
       {/* Contenido */}
       <div
+        ref={dialogoRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
+        tabIndex={-1}
         className={`relative w-full ${ancho} max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh]
           flex flex-col rounded-2xl border border-slate-200 bg-white shadow-xl animate-scale-in`}
       >

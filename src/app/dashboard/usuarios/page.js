@@ -15,9 +15,7 @@ const columnas = [
     clave: 'rol',
     titulo: 'Rol',
     render: (v) => (
-      <span
-        className={v === 'jefe' ? 'ui-badge-warning' : 'ui-badge-info'}
-      >
+      <span className="ui-badge-neutral">
         {v}
       </span>
     ),

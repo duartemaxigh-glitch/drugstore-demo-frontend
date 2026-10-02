@@ -28,24 +28,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <div className="w-full max-w-sm animate-scale-in">
         {/* Card */}
-        <div className="ui-card p-6 sm:p-8 shadow-lg">
+        <div className="ui-card p-6 sm:p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-700 text-white"><BuildingStorefrontIcon className="h-8 w-8" /></span>
-            <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
+            <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-600 text-white"><BuildingStorefrontIcon className="h-8 w-8" /></span>
+            <h1 className="text-2xl font-bold text-slate-900">{APP_NAME}</h1>
             <p className="text-sm text-slate-600 mt-1">Sistema de gestión</p>
           </div>
 
           {/* Formulario */}
           <form onSubmit={manejarSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-1">
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -56,10 +57,11 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-1">
                 Contraseña
               </label>
               <input
+                id="login-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -95,10 +97,6 @@ export default function LoginPage() {
             )}
           </form>
         </div>
-
-        <p className="text-center text-slate-900 text-xs mt-6">
-          Productos · Stock · Ventas · Compras
-        </p>
       </div>
     </div>
   );

@@ -31,12 +31,15 @@ export default function Toast() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 left-4 sm:left-auto z-[100] space-y-2" role="status" aria-live="polite">
+    <div className="fixed top-4 right-4 left-4 sm:left-auto z-[100] space-y-2">
       {toasts.map((toast) => {
         const Icono = iconos[toast.tipo];
         return (
           <div
             key={toast.id}
+            role={toast.tipo === 'error' ? 'alert' : 'status'}
+            aria-live={toast.tipo === 'error' ? 'assertive' : 'polite'}
+            aria-atomic="true"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl border
               shadow-lg w-full sm:min-w-[280px] sm:max-w-sm animate-slide-right
               ${colores[toast.tipo]}`}

@@ -5,14 +5,60 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import api from '@/lib/api';
-import TicketPreview from '@/components/TicketPreview';
+import Modal from '@/components/Modal';
 import {
-  CalendarDaysIcon,
   PrinterIcon,
   EyeIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import { DEMO_MODE } from '@/lib/config';
+
+function fechaLocal(fecha = new Date()) {
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${anio}-${mes}-${dia}`;
+}
+
+function VistaReporte({ texto, onCerrar }) {
+  const [imprimiendo, setImprimiendo] = useState(false);
+
+  async function imprimir() {
+    setImprimiendo(true);
+    try {
+      await api.post('/imprimir', { texto });
+    } catch (err) {
+      console.error('Error al imprimir:', err);
+    } finally {
+      setImprimiendo(false);
+    }
+  }
+
+  return (
+    <Modal titulo="Vista previa del reporte" onCerrar={onCerrar} ancho="max-w-sm">
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 max-h-96 overflow-auto">
+        <pre className="text-[10px] sm:text-xs font-mono whitespace-pre leading-relaxed text-slate-800">
+          {texto}
+        </pre>
+      </div>
+      <div className="flex flex-col-reverse sm:flex-row gap-3">
+        {!DEMO_MODE && (
+          <button
+            onClick={imprimir}
+            disabled={imprimiendo}
+            className="ui-button-primary flex-1"
+          >
+            {!imprimiendo && <PrinterIcon className="h-5 w-5" />}
+            {imprimiendo ? 'Imprimiendo...' : 'Imprimir'}
+          </button>
+        )}
+        <button onClick={onCerrar} className="ui-button-secondary flex-1">
+          Cerrar
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
 export default function ReportesPage() {
   const { esJefe } = useAuth();
@@ -20,7 +66,7 @@ export default function ReportesPage() {
   const toast = useToast();
 
   const [tab, setTab] = useState('ventas');
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(() => fechaLocal());
   const [reporteVentas, setReporteVentas] = useState(null);
   const [reporteCompras, setReporteCompras] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -74,7 +120,7 @@ export default function ReportesPage() {
     <div className="animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="ui-page-title flex items-center gap-2">
-          <ChartBarIcon className="w-6 h-6 text-amber-800" />
+          <ChartBarIcon className="w-6 h-6 text-slate-600" />
           Reportes diarios
         </h1>
         <button
@@ -95,7 +141,7 @@ export default function ReportesPage() {
             onClick={() => setTab('ventas')}
             role="tab"
             aria-selected={tab === 'ventas'}
-            className={`ui-tab ${tab === 'ventas' ? 'ui-tab-active' : ''}`}
+            className={`ui-tab ${tab === 'ventas' ? 'ui-tab-sales-active' : ''}`}
           >
             Ventas
           </button>
@@ -110,8 +156,7 @@ export default function ReportesPage() {
         </div>
 
         {/* Date picker */}
-        <div className="flex items-center gap-2">
-          <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center">
           <input
             type="date"
             value={fecha}
@@ -124,7 +169,7 @@ export default function ReportesPage() {
       {/* Contenido */}
       {cargando ? (
         <div className="flex justify-center items-center py-20">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : !reporte ? (
         <div className="text-center py-20 text-slate-600">
@@ -135,19 +180,19 @@ export default function ReportesPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="ui-card p-5">
-              <p className="text-sm text-gray-500 mb-1">
+              <p className="text-sm text-slate-500 mb-1">
                 {tab === 'ventas' ? 'Ventas del día' : 'Compras del día'}
               </p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-3xl font-bold text-slate-900">
                 {tab === 'ventas'
                   ? reporte.cantidad_ventas
                   : reporte.cantidad_compras}
               </p>
             </div>
             <div className="ui-card p-5">
-              <p className="text-sm text-gray-500 mb-1">Total del día</p>
+              <p className="text-sm text-slate-500 mb-1">Total del día</p>
               <p
-                className={`text-3xl font-bold ${tab === 'ventas' ? 'text-orange-700' : 'text-blue-700'}`}
+                className={`text-3xl font-bold tabular-nums ${tab === 'ventas' ? 'text-orange-600' : 'text-blue-700'}`}
               >
                 ${reporte.total_dia.toFixed(2)}
               </p>
@@ -160,23 +205,23 @@ export default function ReportesPage() {
               {tab === 'ventas' ? (
                 <table className="ui-table min-w-[760px]">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         # Venta
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Hora
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Cajero
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Cliente
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Medio de Pago
                       </th>
-                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Total
                       </th>
                     </tr>
@@ -185,12 +230,12 @@ export default function ReportesPage() {
                     {reporte.ventas.map((v) => (
                       <tr
                         key={v.id_venta}
-                        className="border-b border-gray-50 hover:bg-amber-50/50 transition-colors"
+                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                       >
                         <td className="px-5 py-3.5 text-sm font-mono">
                           #{v.id_venta}
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-600">
+                        <td className="px-5 py-3.5 text-sm text-slate-600">
                           {v.hora}
                         </td>
                         <td className="px-5 py-3.5 text-sm">{v.cajero}</td>
@@ -198,7 +243,7 @@ export default function ReportesPage() {
                           {v.cliente || '—'}
                         </td>
                         <td className="px-5 py-3.5 text-sm">{v.medio_pago}</td>
-                        <td className="px-5 py-3.5 text-sm font-bold text-orange-700 text-right">
+                        <td className="px-5 py-3.5 text-sm font-bold text-right tabular-nums">
                           ${v.total.toFixed(2)}
                         </td>
                       </tr>
@@ -218,20 +263,20 @@ export default function ReportesPage() {
               ) : (
                 <table className="ui-table min-w-[680px]">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         # Compra
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Hora
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Usuario
                       </th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Proveedor
                       </th>
-                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase">
+                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase">
                         Total
                       </th>
                     </tr>
@@ -240,17 +285,17 @@ export default function ReportesPage() {
                     {reporte.compras.map((c) => (
                       <tr
                         key={c.id_compra}
-                        className="border-b border-slate-100 hover:bg-blue-50/50 transition-colors"
+                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                       >
                         <td className="px-5 py-3.5 text-sm font-mono">
                           #{c.id_compra}
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-600">
+                        <td className="px-5 py-3.5 text-sm text-slate-600">
                           {c.hora}
                         </td>
                         <td className="px-5 py-3.5 text-sm">{c.usuario}</td>
                         <td className="px-5 py-3.5 text-sm">{c.proveedor}</td>
-                        <td className="px-5 py-3.5 text-sm font-bold text-blue-700 text-right">
+                        <td className="px-5 py-3.5 text-sm font-bold text-right tabular-nums">
                           ${c.total.toFixed(2)}
                         </td>
                       </tr>
@@ -275,7 +320,7 @@ export default function ReportesPage() {
 
       {/* Ticket preview */}
       {ticketTexto && (
-        <TicketPreview
+        <VistaReporte
           texto={ticketTexto}
           onCerrar={() => setTicketTexto(null)}
         />
